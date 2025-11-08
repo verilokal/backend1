@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Blockchain Register & Verify</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; margin: 0; }
+    h2 { text-align: center; }
+    form { background: white; padding: 20px; border-radius: 10px; margin: 20px auto; width: 400px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    input, textarea { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #4CAF50; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; }
+    button:hover { background: #45a049; }
+    #loginResult, #productResult, #verifyResult { text-align: center; margin-top: 10px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>🔐 Business Login</h2>
+  <form id="loginForm">
+    <input type="email" name="email" placeholder="Business Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Login</button>
+    <div id="loginResult"></div>
+  </form>
+
+  <h2 id="productHeader" style="display:none;">🛒 Register Product</h2>
+  <form id="productForm" enctype="multipart/form-data" style="display:none;">
+    <input type="text" name="name" placeholder="Product Name" required>
+    <input type="text" name="origin" placeholder="Origin" required>
+    <input type="text" name="materials" placeholder="Materials" required>
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="type" placeholder="Type" required>
+    <input type="date" name="productionDate" placeholder="Production Date" required>
+    <input type="text" name="socials" placeholder="Socials (optional)">
+    <label>Product Image:</label>
+    <input type="file" name="product_image" required>
+    <button type="submit">Register Product</button>
+    <div id="productResult"></div>
+  </form>
+
+  <h2>🔍 Verify Product</h2>
+  <form id="verifyForm">
+    <input type="number" id="verify_product_id" name="product_id" placeholder="Product ID" required>
+    <input type="text" id="verify_blockchain_hash" name="blockchain_hash" placeholder="Blockchain Hash" required>
+    <button type="submit">Verify Product</button>
+    <div id="verifyResult"></div>
+  </form>
+
+  <script>
+    const BASE_URL = "http://localhost:3000/api";
+
+    // LOGIN
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = e.target.email.value;
+      const password = e.target.password.value;
+      const resultBox = document.getElementById('loginResult');
+      resultBox.innerText = "⏳ Logging in...";
+      try {
+        const res = await axios.post(`${BASE_URL}/login`, { email, password });
+        localStorage.setItem('token', res.data.token);
+        resultBox.innerText = "✅ " + res.data.message;
+        document.getElementById('productForm').style.display = "block";
+        document.getElementById('productHeader').style.display = "block";
+      } catch (err) {
+        console.error(err);
+        resultBox.innerText = "❌ " + (err.response?.data?.message || err.message);
+      }
+    });
+
+    // REGISTER PRODUCT
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = localStorage.getItem('token');
+      if (!token) return alert('Please login first.');
+
+      const formData = new FormData(e.target);
+      const resultBox = document.getElementById('productResult');
+      resultBox.innerText = "⏳ Registering product...";
+      try {
+        const res = await axios.post(`${BASE_URL}/products`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
+        });
+        resultBox.innerHTML = `
+          ✅ ${res.data.message}<br>
+          Product ID: ${res.data.result.id}<br>
+          Blockchain Hash: <code>${res.data.result.blockchain_hash}</code><br>
+          QR Code: <a href="${res.data.result.qr_code}" target="_blank">View QR</a>
+        `;
+        e.target.reset();
+      } catch (err) {
+        console.error(err);
+        resultBox.innerText = "❌ " + (err.response?.data?.error || err.message);
+      }
+    });
+
+    // VERIFY PRODUCT
+    document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const product_id = document.getElementById('verify_product_id').value;
+      const blockchain_hash = document.getElementById('verify_blockchain_hash').value;
+      const resultBox = document.getElementById('verifyResult');
+      resultBox.innerText = "⏳ Verifying product...";
+
+      try {
+        const res = await axios.post(`${BASE_URL}/products/verify`, { product_id, blockchain_hash });
+        if (res.data.verified) {
+          resultBox.innerHTML = `
+            ✅ ${res.data.message}<br>
+            Product ID: ${res.data.blockchain.product_id}<br>
+            Blockchain On-Chain ID: ${res.data.blockchain.response}<br>
+            Owner: ${res.data.blockchain.owner}
+          `;
+        } else {
+          resultBox.innerHTML = `❌ ${res.data.message}`;
+        }
+      } catch (err) {
+        console.error(err);
+        resultBox.innerText = "❌ " + (err.response?.data?.message || err.message);
+      }
+    });
+  </script>
+
+</body>
+</html>
