@@ -14,6 +14,22 @@
             "database": "railway",
             "username": "root",
             "password": "MWspMwOfbUvTsLHjkvGyrXrhOhRSImMq"
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 100,
+            "server": "centerbeam.proxy.rlwy.net",
+            "port": 16896,
+            "driver": "MySQL",
+            "name": "Veri Lokal",
+            "database": "railway",
+            "username": "root",
+            "connectionTimeout": 10,
+            "password": "PUjAsXzRGhrnuWIByjCBCCKEmnihLNXe"
         }
     ]
 }

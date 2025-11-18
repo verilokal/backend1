@@ -4,7 +4,7 @@ import db from '../config/db.js';
 const Business = {
   create: (data, callback) => {
     const sql = `INSERT INTO business 
-      (name, address, registered_business_name, registration_number, description, product_img, certificates, logo, email, password, socials)
+      (name, address, registered_business_name, registration_number, description, product_img, certificates, logo, email, password, contact_no)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     db.query(sql, [
       data.name,
@@ -17,7 +17,7 @@ const Business = {
       data.logo,
       data.email,
       data.password,
-      data.socials
+      data.contact_no
     ], callback);
   },
 

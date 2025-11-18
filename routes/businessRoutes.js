@@ -3,13 +3,14 @@ const router = express.Router();
 import multer from 'multer';
 import businessController from '../controllers/businessController.js';
 import authBusinessController from '../controllers/authBusinessController.js';
+import path from "path";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + Path2D.extname(file.originalname))
+    cb(null, Date.now() + path.extname(file.originalname))
   }
 });
 const upload = multer({storage: storage });

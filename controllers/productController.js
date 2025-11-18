@@ -6,7 +6,9 @@ import crypto, { Verify } from 'crypto';
 import db from '../config/db.js';
 import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
-import contract from '../blockchain/blockchain.js'
+import contract from '../blockchain/blockchain.js';
+import { ethers } from "ethers";
+import { createCanvas, loadImage } from '@napi-rs/canvas';
 
 
 
@@ -15,9 +17,11 @@ export const createProducts = (req, res) => {
     const { name, origin, materials, description, type, productionDate} = req.body;
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    const product_image = req.files?.product_image ? req.files.product_image[0].path : null;
+    const product_image = req.files?.product_image
+  ? `products/${req.files.product_image[0].filename}`
+  : null;
     const qrFolder = path.join(__dirname, '../qrcodes');
-    const productDataString = `${name}|${origin}|${materials}|${description}|${type}|${Date.now()}`;
+    const productDataString = `${name}|${origin}|${materials}|${description}|${type}|${productionDate}|${Date.now()}`;
     const blockchain_hash = crypto.createHash('sha256').update(productDataString).digest('hex');
     const business_id = req.user.id;
 
@@ -41,28 +45,62 @@ export const createProducts = (req, res) => {
 
     Products.create(data, async (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-
-      
       const qrCodeFileName = `${name.replace(/\s/g, '-')}-${Date.now()}.png`;
       const qrCodePath = path.join(qrFolder, qrCodeFileName); 
       const qrCodeDbPath = `qrcodes/${qrCodeFileName}`;
       const product_id = result.insertId;
       const url =  `${product_id}|${blockchain_hash}`;
+      const qrSize = 700;
+  
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        errorCorrectionLevel: "H",
+        color: {
+          dark: "#8a412cff",
+          light: "#FFFFFF"
+        },
+        width: qrSize
+        });
+      const qrImage = await loadImage(qrDataUrl);
+      const canvas = createCanvas(qrSize, qrSize);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, qrSize, qrSize);
+
+      ctx.drawImage(qrImage, 0, 0, qrSize, qrSize);
+      const logoPath = path.join(__dirname, "../assets/logo.png");
+      const logo = await loadImage(logoPath);
+      const logoSize = qrSize * 0.25;
+      const logoX = (qrSize - logoSize) / 2;
+      const logoY = (qrSize - logoSize) / 2;
+       
+      ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
+
+      const finalBuffer = canvas.toBuffer("image/png");
+      fs.writeFileSync(qrCodePath, finalBuffer);
       
-      QRCode.toFile(qrCodePath, url, (err) => {
-        if (err) return res.status(500).json({error: 'FAILED TO GENERATE QRCODE'});
-        db.query('UPDATE products SET qr_code=? WHERE id=?', [qrCodeDbPath, product_id]);
-      });
+      
+      const tx = await contract.registerProduct(product_id, blockchain_hash, {
+        maxFeePerGas: ethers.parseUnits("50", "gwei"),
+        maxPriorityFeePerGas: ethers.parseUnits("2", "gwei")
+    });
 
-      const tx = await contract.registerProduct(product_id, blockchain_hash);
-      await tx.wait();
-
+        const receipt = await tx.wait();
+        db.query('UPDATE products SET qr_code=?, tx_hash=? WHERE id=?', [qrCodeDbPath, tx.hash, product_id],
+          (err) => {
+            if (err) {
+              console.error("Error saving tx_hash:", err);
+              return res.status(500).json({error: "Failed to save tx hash"});
+            }
+          }
+        );
+        
         res.status(201).json({
         message: 'Product Registered Successfully',
         result: {
           id: result.insertId,
           qr_code: `/qrcodes/${qrCodeFileName}`,
-          blockchain_hash: blockchain_hash
+          blockchain_hash: blockchain_hash,
+          tx_hash: tx.hash,
         }
       });
     });
