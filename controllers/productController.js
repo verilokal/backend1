@@ -9,24 +9,44 @@ import { fileURLToPath } from 'url';
 import contract from '../blockchain/blockchain.js';
 import { ethers } from "ethers";
 import { createCanvas, loadImage } from '@napi-rs/canvas';
+import cloudinary from "../config/cloudinary.js";
+import { v4 as uuid } from "uuid";
 
 
 
-export const createProducts = (req, res) => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const qrFolder = path.join(__dirname, "../qrcodes");
+if (!fs.existsSync(qrFolder)) fs.mkdirSync(qrFolder);
+
+export const createProducts = async (req, res) => {
   try {
     const { name, origin, materials, description, type, productionDate} = req.body;
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const product_image = req.files?.product_image
-  ? `products/${req.files.product_image[0].filename}`
-  : null;
-    const qrFolder = path.join(__dirname, '../qrcodes');
+    
     const productDataString = `${name}|${origin}|${materials}|${description}|${type}|${productionDate}|${Date.now()}`;
     const blockchain_hash = crypto.createHash('sha256').update(productDataString).digest('hex');
     const business_id = req.user.id;
 
-    if (!fs.existsSync(qrFolder)) {
-      fs.mkdirSync(qrFolder);
+
+    let product_image_url = null;
+    if (req.files?.product_image?.[0]) {
+      const buffer = req.files.product_image[0].buffer;
+       const uploadImage = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: "products",
+            },
+            (err, result) => {
+              if (err) reject(err);
+              resolve(result);
+            }
+          )
+          .end(buffer);
+      });
+
+      product_image_url = uploadImage.secure_url;
     }
 
     const data = {
@@ -34,7 +54,7 @@ export const createProducts = (req, res) => {
       origin,
       materials,
       description,
-      product_image,
+      product_image: product_image_url,
       type,
       productionDate,
       qr_code: '',
@@ -76,8 +96,22 @@ export const createProducts = (req, res) => {
       ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
 
       const finalBuffer = canvas.toBuffer("image/png");
-      fs.writeFileSync(qrCodePath, finalBuffer);
-      
+            const qrUpload = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: "qrcodes",
+              public_id: `qr_${uuid()}`,
+            },
+            (err, result) => {
+              if (err) reject(err);
+              resolve(result);
+            }
+          )
+          .end(finalBuffer);
+      });
+
+      const qrCodeUrl = qrUpload.secure_url;
       
       const tx = await contract.registerProduct(product_id, blockchain_hash, {
         maxFeePerGas: ethers.parseUnits("50", "gwei"),
@@ -85,7 +119,7 @@ export const createProducts = (req, res) => {
     });
 
         const receipt = await tx.wait();
-        db.query('UPDATE products SET qr_code=?, tx_hash=? WHERE id=?', [qrCodeDbPath, tx.hash, product_id],
+        db.query('UPDATE products SET qr_code=?, tx_hash=? WHERE id=?', [qrCodeUrl, tx.hash, product_id],
           (err) => {
             if (err) {
               console.error("Error saving tx_hash:", err);
@@ -98,7 +132,8 @@ export const createProducts = (req, res) => {
         message: 'Product Registered Successfully',
         result: {
           id: result.insertId,
-          qr_code: `/qrcodes/${qrCodeFileName}`,
+          qr_code: qrCodeUrl,
+          product_image: product_image_url,
           blockchain_hash: blockchain_hash,
           tx_hash: tx.hash,
         }
