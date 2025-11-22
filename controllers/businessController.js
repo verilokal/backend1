@@ -158,4 +158,4 @@ export const deleteBusiness = (req, res) => {
 };
 
 
-export default { createBusiness, getAllBusinesses, getBusinessById, updateBusiness, deleteBusiness };
+export default { createBusiness, getAllBusinesses, getBusinessById, updateBusiness, deleteBusiness, getBusinessProfile };
