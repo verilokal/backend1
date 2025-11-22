@@ -31,6 +31,8 @@ router.put(
   businessController.updateBusiness
 );
 
+router.get('/business/:id/profile', businessController.getBusinessProfile);
+
 router.delete('/business/:id', businessController.deleteBusiness);
 
 export default router;
