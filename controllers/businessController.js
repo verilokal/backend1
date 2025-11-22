@@ -91,7 +91,7 @@ export const updateBusiness = (req, res) => {
 };
 export const getBusinessProfile = (req, res) => {
   const id = req.params.id
-  const baseURl = `https://backend-al4l.onrender.com/uploads`;
+  const baseUrl = `https://backend-al4l.onrender.com/uploads`;
   const sql = `
   SELECT
   b.business_id,
