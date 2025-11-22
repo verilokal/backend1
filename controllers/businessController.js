@@ -55,7 +55,12 @@ export const getBusinessById = (req, res) => {
   Business.getById(id, (err, result) => {
     if (err) return res.status(500).json({ error: err });
     if (result.length === 0) return res.status(404).json({ message: 'Business not found' });
-    res.json(result[0]);
+    const baseUrl = `https://backend1-al4l.onrender.com/uploads/`;
+    const business = result[0];
+    business.logo = business.logo ? baseUrl + business.logo : null;
+    business.product_img = business.product_img ? baseUrl + business.product_img : null;
+    business.certificates = business.certificates ? baseUrl + business.certificates : null;
+    res.json(business);
   });
 };
 
