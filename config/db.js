@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS business (
   name VARCHAR(255) NOT NULL, 
   address VARCHAR(255),
   registered_business_name VARCHAR(255),
-  registration_number VARCHAR(100),
   description TEXT,
   product_img TEXT,
   certificates TEXT,

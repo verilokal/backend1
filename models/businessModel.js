@@ -5,7 +5,7 @@ const Business = {
   create: (data, callback) => {
     const sql = `INSERT INTO business 
       (name, address, registered_business_name, description, product_img, certificates, logo, email, password, contact_no)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     db.query(sql, [
       data.name,
       data.address,
