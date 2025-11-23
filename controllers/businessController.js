@@ -3,7 +3,7 @@ import Business from '../models/businessModel.js';
 import bcrypt from 'bcrypt';
 
 export const createBusiness = async (req, res) => {
-  const { name, address, registered_business_name, registration_number, description, email, password, contact_no} = req.body;
+  const { name, address, registered_business_name, description, email, password, contact_no} = req.body;
   const product_img = req.files?.product_img ? req.files.product_img[0].path : null;
   const certificates = req.files?.certificates ? req.files.certificates[0].path : null;
   const logo = req.files?.logo ? req.files.logo[0].path : null;
@@ -13,7 +13,6 @@ export const createBusiness = async (req, res) => {
     name,
     address,
     registered_business_name,
-    registration_number,
     description,
     product_img,
     certificates,
@@ -32,7 +31,6 @@ export const createBusiness = async (req, res) => {
       if (err.code === "ER_DUP_ENTRY") {
         let message = 'Duplicate entry detected:';
         if (err.sqlMessage.includes('registered_business_name')) message += 'Registered Business Name';
-        if (err.sqlMessage.includes('registration_number')) message += 'Registration Number';
         if (err.sqlMessage.includes('email')) message += 'Email';
         return res.status(400).json({message: message.trim() + 'Already exists!'});
       }
@@ -66,7 +64,7 @@ export const getBusinessById = (req, res) => {
 
 export const updateBusiness = (req, res) => {
   const id = req.params.id;
-  const { name, address, registered_business_name, registration_number, description, contact_no} = req.body;
+  const { name, address, registered_business_name, description, contact_no} = req.body;
 
   const product_img = req.files?.product_img ? req.files.product_img[0].path : req.body.product_img;
   const certificates = req.files?.certificates ? req.files.certificates[0].path : req.body.certificates;
@@ -76,7 +74,6 @@ export const updateBusiness = (req, res) => {
     name,
     address,
     registered_business_name,
-    registration_number,
     description,
     product_img,
     certificates,

@@ -4,13 +4,12 @@ import db from '../config/db.js';
 const Business = {
   create: (data, callback) => {
     const sql = `INSERT INTO business 
-      (name, address, registered_business_name, registration_number, description, product_img, certificates, logo, email, password, contact_no)
+      (name, address, registered_business_name, description, product_img, certificates, logo, email, password, contact_no)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     db.query(sql, [
       data.name,
       data.address,
       data.registered_business_name,
-      data.registration_number,
       data.description,
       data.product_img,
       data.certificates,
@@ -36,13 +35,12 @@ const Business = {
 
   update: (id, data, callback) => {
     const sql = `UPDATE business SET
-      name=?, address=?, registered_business_name=?, registration_number=?, description=?, 
+      name=?, address=?, registered_business_name=?, description=?, 
       product_img=?, certificates=?, logo=? WHERE id=?`;
     db.query(sql, [
       data.name,
       data.address,
       data.registered_business_name,
-      data.registration_number,
       data.description,
       data.product_img,
       data.certificates,
