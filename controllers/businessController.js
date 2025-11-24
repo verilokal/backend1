@@ -19,8 +19,7 @@ export const createBusiness = async (req, res) => {
     logo,
     email,
     password: hashedPassword,
-    contact_no,
-    verified: false
+    contact_no
   };
 
   if (!email || !password){
@@ -155,26 +154,5 @@ export const deleteBusiness = (req, res) => {
   });
 };
 
-export const getPendingBusiness = (req, res) => {
-  const sql = `SELECT business_id, name, registered_business_name, email, contact_no, verified
-  FROM business WHERE verified = FALSE`;
-  Business.query(sql, (err, results) => {
-    if(err) return res.status(500).json({ error: err });
-    res.json(results);
-  });
-};
 
-export const verifyBusiness = (req, res) => {
-  const id = req.param.id;
-  const { admin_id } = req.body;
-  const sql = `UPDATE business
-  SET verified = TRUE, verified_at = NOW(), verified_by = ?
-  WHERE business_id = ?`;
-  Business.query(sql, [admin_id, id], (err) =>{
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: "Business Verified Successfully!"});
-  });
-};
-
-
-export default { createBusiness, getAllBusinesses, getBusinessById, updateBusiness, deleteBusiness, getBusinessProfile, getPendingBusiness, verifyBusiness };
+export default { createBusiness, getAllBusinesses, getBusinessById, updateBusiness, deleteBusiness, getBusinessProfile };
