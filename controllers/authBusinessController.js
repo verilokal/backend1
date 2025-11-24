@@ -21,12 +21,15 @@ export const login = (req, res) => {
             return res.status(404).json({message: 'Business Not Found!'});
         }
         const business = result[0];
+        if (!business.verified) {
+            return res.status(403).json({ message: 'Your business is pending admin approval'});
+        }
         const isMatch = await bcrypt.compare(password, business.password);
         if (!isMatch) {
             return res.status(404).json({message: 'Incorrect Password'});
         }
         const token = jwt.sign(
-            {id: business.id, email: business.email},
+            {id: business.business_id, email: business.email},
             process.env.JWT_SECRET,
             {expiresIn: '24h'}
         );
@@ -34,7 +37,7 @@ export const login = (req, res) => {
             message: 'Login Successfully!',
             token: token,
             business: {
-                id: business.id,
+                id: business.business_id,
                 name: business.name,
                 email: business.email,
             },

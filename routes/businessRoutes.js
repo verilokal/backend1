@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import multer from 'multer';
-import businessController from '../controllers/businessController.js';
+import businessController, { getPendingBusiness, verifyBusiness } from '../controllers/businessController.js';
 import authBusinessController from '../controllers/authBusinessController.js';
 import path from "path";
 
@@ -24,7 +24,8 @@ router.post(
 router.post('/login', authBusinessController.login);
 router.get('/business', businessController.getAllBusinesses);
 router.get('/business/:id', businessController.getBusinessById);
-
+router.get('/admin/pending', getPendingBusiness);
+router.post('/admin/verify/:id', verifyBusiness);
 router.put(
   '/business/:id',
   upload.fields([{ name: 'product_img' }, { name: 'certificates' }, {name: 'logo'}]),
