@@ -30,6 +30,7 @@ export const createProducts = async (req, res) => {
 
 
     let product_image_url = null;
+    let process_image_url = null;
     if (req.files?.product_image?.[0]) {
       const buffer = req.files.product_image[0].buffer;
        const uploadImage = await new Promise((resolve, reject) => {
@@ -51,14 +52,18 @@ export const createProducts = async (req, res) => {
     if (req.files?.process_image?.[0]) {
       const buffer = req.files.process_image[0].buffer;
       const uploadProcess = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream({ folder: "process_images" }, (err, result) => {
-          if (err) reject(err);
-          resolve(result);
-        }).end(buffer);
+        cloudinary.uploader
+          .upload_stream(
+            { folder: "process_images" },
+            (err, result) => {
+              if (err) reject(err);
+              resolve(result);
+            }
+          )
+          .end(buffer);
       });
       process_image_url = uploadProcess.secure_url;
     }
-
     const data = {
       name,
       origin,

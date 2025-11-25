@@ -9,7 +9,7 @@ const upload = multer({storage});
 
 router.post(
 '/products', auth,
-upload.fields([{name: 'product_image', maxCount: 1}]), 
+upload.fields([{name: 'product_image', maxCount: 1}, { name: 'process_image', maxCount: 1 }]), 
 productController.createProducts);
 
 router.get('/products', productController.getAllProducts);

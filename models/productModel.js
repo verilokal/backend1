@@ -4,14 +4,15 @@ import db from '../config/db.js';
 const Product = {
     create: (data, callback) => {
         const sql = `INSERT INTO products
-        (name, origin, materials, description, product_image, type, qr_code, blockchain_hash, business_id, productionDate)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) `;
+        (name, origin, materials, description, product_image, process_image, type, qr_code, blockchain_hash, business_id, productionDate)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) `;
     db.query(sql, [
         data.name,
         data.origin,
         data.materials,
         data.description,
         data.product_image,
+        data.process_image,
         data.type,
         data.qr_code,
         data.blockchain_hash,
