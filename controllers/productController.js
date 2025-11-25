@@ -48,6 +48,16 @@ export const createProducts = async (req, res) => {
 
       product_image_url = uploadImage.secure_url;
     }
+    if (req.files?.process_image?.[0]) {
+      const buffer = req.files.process_image[0].buffer;
+      const uploadProcess = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream({ folder: "process_images" }, (err, result) => {
+          if (err) reject(err);
+          resolve(result);
+        }).end(buffer);
+      });
+      process_image_url = uploadProcess.secure_url;
+    }
 
     const data = {
       name,
@@ -55,6 +65,7 @@ export const createProducts = async (req, res) => {
       materials,
       description,
       product_image: product_image_url,
+      process_image: process_image_url,
       type,
       productionDate,
       qr_code: '',
@@ -134,6 +145,7 @@ export const createProducts = async (req, res) => {
           id: result.insertId,
           qr_code: qrCodeUrl,
           product_image: product_image_url,
+          process_image: process_image_url,
           blockchain_hash: blockchain_hash,
           tx_hash: tx.hash,
         }
