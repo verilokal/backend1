@@ -31,7 +31,7 @@ router.put(
   businessController.updateBusiness
 );
 
-router.get('/business/:id/profile', businessController.getBusinessProfile);
+router.get('/business/profile/:id', businessController.getBusinessProfile);
 
 router.delete('/business/:id', businessController.deleteBusiness);
 
