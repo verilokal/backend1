@@ -21,6 +21,11 @@ export const login = (req, res) => {
             return res.status(404).json({message: 'Business Not Found!'});
         }
         const business = result[0];
+        if (!business.verified) {
+            return res.status(403).json({
+                message: "Your account is pending admin approval!"
+            });
+        }
         const isMatch = await bcrypt.compare(password, business.password);
         if (!isMatch) {
             return res.status(404).json({message: 'Incorrect Password'});
