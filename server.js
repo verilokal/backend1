@@ -5,7 +5,7 @@ import businessRoutes from './routes/businessRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import adminRoutes from './routes/adminRoutes.js';
 
 
 const app = express();
@@ -22,7 +22,7 @@ app.use('/products', express.static('products'));
 
 app.use('/api', businessRoutes);
 app.use('/api', productRoutes);
-
+app.use('/api/admin', adminRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

@@ -41,6 +41,7 @@ export const login = (req, res) => {
             business: {
                 id: business.id,
                 name: business.name,
+                registered_business_name: business.registered_business_name,
                 email: business.email,
             },
         });
