@@ -1,10 +1,11 @@
 import express from 'express';
-import db from '../config/db.js'; // your DB connection
+import db from '../config/db.js'; 
 
 const router = express.Router();
 
-// Get pending businesses
 router.get('/pending-businesses', (req, res) => {
+  const baseUrl = "https://backend-al4l.onrender.com/uploads/"; // change if needed
+
   const sql = `
     SELECT 
       id, 
@@ -20,9 +21,33 @@ router.get('/pending-businesses', (req, res) => {
     WHERE verified = 0
     ORDER BY created_at ASC
   `;
+
   db.query(sql, (err, result) => {
     if (err) return res.status(500).json({ error: "Database error" });
-    res.json(result);
+
+    // Map each business to fix image paths
+    const formatted = result.map((b) => ({
+      ...b,
+      product_img: b.product_img
+        ? b.product_img.startsWith("http")
+          ? b.product_img
+          : baseUrl + b.product_img
+        : null,
+
+      certificates: b.certificates
+        ? b.certificates.startsWith("http")
+          ? b.certificates
+          : baseUrl + b.certificates
+        : null,
+
+      logo: b.logo
+        ? b.logo.startsWith("http")
+          ? b.logo
+          : baseUrl + b.logo
+        : null
+    }));
+
+    res.json(formatted);
   });
 });
 

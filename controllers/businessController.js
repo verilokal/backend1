@@ -1,43 +1,88 @@
-import { create } from 'domain';
 import Business from '../models/businessModel.js';
 import bcrypt from 'bcrypt';
+import cloudinary from '../config/cloudinary.js';
 
 export const createBusiness = async (req, res) => {
-  const { name, address, registered_business_name, description, email, password, contact_no} = req.body;
-  const product_img = req.files?.product_img ? req.files.product_img[0].path : null;
-  const certificates = req.files?.certificates ? req.files.certificates[0].path : null;
-  const logo = req.files?.logo ? req.files.logo[0].path : null;
+  try {
+    const {
+      name,
+      address,
+      registered_business_name,
+      description,
+      email,
+      password,
+      contact_no
+    } = req.body;
 
-  const hashedPassword =  await bcrypt.hash(password, 10);
-  const data = {
-    name,
-    address,
-    registered_business_name,
-    description,
-    product_img,
-    certificates,
-    logo,
-    email,
-    password: hashedPassword,
-    contact_no
-  };
-
-  if (!email || !password){
-    return res.status(400).json({message: 'Email and Password Required!'});
-  }
-
-  Business.create(data, (err, result) => {
-    if (err) {
-      if (err.code === "ER_DUP_ENTRY") {
-        let message = 'Duplicate entry detected:';
-        if (err.sqlMessage.includes('registered_business_name')) message += 'Registered Business Name';
-        if (err.sqlMessage.includes('email')) message += 'Email';
-        return res.status(400).json({message: message.trim() + 'Already exists!'});
-      }
-      return res.status(500).json({error: err});
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and Password Required!" });
     }
-    res.status(201).json({ message: '✅ Business registered successfully!', id: result.insertId });
-  });
+
+    let product_img_url = null;
+    let certificates_url = null;
+    let logo_url = null;
+
+    if (req.files?.product_img) {
+      const upload = await cloudinary.uploader.upload(
+        req.files.product_img[0].path,
+        { folder: "business/product_img" }
+      );
+      product_img_url = upload.secure_url;
+    }
+
+    if (req.files?.certificates) {
+      const upload = await cloudinary.uploader.upload(
+        req.files.certificates[0].path,
+        { folder: "business/certificates" }
+      );
+      certificates_url = upload.secure_url;
+    }
+
+    if (req.files?.logo) {
+      const upload = await cloudinary.uploader.upload(
+        req.files.logo[0].path,
+        { folder: "business/logo" }
+      );
+      logo_url = upload.secure_url;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const data = {
+      name,
+      address,
+      registered_business_name,
+      description,
+      product_img: product_img_url,
+      certificates: certificates_url,
+      logo: logo_url,
+      email,
+      password: hashedPassword,
+      contact_no
+    };
+
+    Business.create(data, (err, result) => {
+      if (err) {
+        if (err.code === "ER_DUP_ENTRY") {
+          let message = "Duplicate entry detected: ";
+          if (err.sqlMessage.includes("registered_business_name"))
+            message += "Registered Business Name ";
+          if (err.sqlMessage.includes("email")) message += "Email ";
+          return res.status(400).json({ message: message + "already exists!" });
+        }
+        return res.status(500).json({ error: err });
+      }
+
+      res.status(201).json({
+        message: "✅ Business registered successfully!",
+        id: result.insertId,
+      });
+    });
+
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    res.status(500).json({ message: "Upload failed", error });
+  }
 };
 
 export const getAllBusinesses = (req, res) => {
