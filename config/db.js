@@ -4,11 +4,11 @@ import mysql from 'mysql2';
 import fs from "fs";
 
 const db = mysql.createConnection({
-  host: 'centerbeam.proxy.rlwy.net', 
+  host: 'gondola.proxy.rlwy.net', 
   user: 'root',
-  password: 'PUjAsXzRGhrnuWIByjCBCCKEmnihLNXe',
+  password: 'nOxGAGCPBeHLUahASsbFWhYWLSxfcyKf',
   database: 'railway',
-  port: 16896, 
+  port: 18279, 
   waitForConnections: true,
   connectionLimit: 10000,
   ssl: {
@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS business (
   email VARCHAR(255),
   password VARCHAR(255),
   contact_no VARCHAR(11),
+  verified TINYINT(1) DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `;
@@ -48,6 +49,7 @@ CREATE TABLE IF NOT EXISTS products (
   materials TEXT,
   description TEXT,
   product_image TEXT,
+  process_image VARCHAR(255),
   type VARCHAR(255),
   productionDate VARCHAR(100),
   qr_code TEXT,

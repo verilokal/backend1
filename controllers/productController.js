@@ -91,7 +91,7 @@ export const createProducts = async (req, res) => {
       const qrDataUrl = await QRCode.toDataURL(url, {
         errorCorrectionLevel: "H",
         color: {
-          dark: "#8a412cff",
+          dark: "#4A70A9",
           light: "#FFFFFF"
         },
         width: qrSize
